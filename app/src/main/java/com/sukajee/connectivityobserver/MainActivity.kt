@@ -13,6 +13,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sukajee.connectivityobserver.ui.theme.ConnectivityObserverTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,19 +27,24 @@ class MainActivity : ComponentActivity() {
         connectivityObserver = NetworkConnectivityObserver(applicationContext)
         setContent {
             ConnectivityObserverTheme {
-                val status by connectivityObserver.observe().collectAsState(
-                    initial = ConnectivityObserver.Status.Unavailable
-                )
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
+                val viewModel = viewModel<ConnectivityViewModel> {
+                    ConnectivityViewModel(
+                        connectivityObserver = NetworkConnectivityObserver(
+                            context = applicationContext
+                        )
+                    )
+                }
+                val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "Network status: $status")
+                        Text(
+                            text = "Connected? $isConnected"
+                        )
                     }
                 }
             }
